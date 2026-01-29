@@ -230,3 +230,6 @@ st.caption(
     "awareness purposes. Predictions depend on image quality and should be "
     "verified by agricultural experts."
 )
+st.caption(
+    "Model used: Open-source YOLO-based pretrained plant disease detection model."
+)
