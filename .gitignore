@@ -16,3 +16,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+*.jpg
+test.py
+__pycache__/
