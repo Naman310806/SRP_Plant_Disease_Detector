@@ -1,3 +1,5 @@
+# ================= REMEDIES ================= #
+
 REMEDIES = {
     "Pepper__bell___Bacterial_spot": {
         "description": "Bacterial disease causing dark, water-soaked spots on pepper leaves.",
@@ -109,25 +111,25 @@ REMEDIES = {
     }
 }
 
+# ================= IMPORTS ================= #
 
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
 import tempfile
-import cv2
 
-# ---------------- PAGE CONFIG ---------------- #
+# ================= PAGE CONFIG ================= #
+
 st.set_page_config(
     page_title="Smart Crop Disease Detection",
     page_icon="🌱",
     layout="centered"
 )
 
-# ---------------- HEADER ---------------- #
 st.markdown(
     """
-    <h1 style="text-align: center;">🌱 Smart Crop Disease Detection System</h1>
-    <p style="text-align: center; color: gray;">
+    <h1 style="text-align:center;">🌱 Smart Crop Disease Detection System</h1>
+    <p style="text-align:center; color:gray;">
     AI-based leaf image analysis for early crop disease identification
     </p>
     """,
@@ -136,14 +138,16 @@ st.markdown(
 
 st.markdown("---")
 
-# ---------------- LOAD MODEL ---------------- #
+# ================= LOAD MODEL ================= #
+
 @st.cache_resource
 def load_model():
     return YOLO("best.pt")
 
 model = load_model()
 
-# ---------------- UPLOAD SECTION ---------------- #
+# ================= UPLOAD SECTION ================= #
+
 st.subheader("📤 Upload Leaf Image")
 
 uploaded_file = st.file_uploader(
@@ -159,7 +163,6 @@ st.caption(
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
 
-    # Save uploaded image temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
         image.save(tmp.name)
         img_path = tmp.name
@@ -168,23 +171,15 @@ if uploaded_file is not None:
     st.subheader("🔍 Analysis Result")
 
     with st.spinner("Analyzing image using AI model..."):
-        results = model(
-            img_path,
-            conf=0.10,
-            imgsz=640
-        )
+        results = model(img_path, conf=0.10, imgsz=640)
 
     detections = results[0].boxes
 
     if detections is None or len(detections) == 0:
         st.success("✅ No clear disease detected in the uploaded image.")
-        st.info(
-            "Try uploading a clearer image with a single leaf and plain background."
-        )
+        st.info("Try uploading a clearer image with a single leaf and plain background.")
     else:
-        # ---------------- DRAW BOUNDING BOXES ---------------- #
-        annotated_img = results[0].plot()  # BGR image with boxes
-        annotated_img = cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB)
+        annotated_img = results[0].plot()
 
         st.image(
             annotated_img,
@@ -192,7 +187,6 @@ if uploaded_file is not None:
             use_column_width=True
         )
 
-        # Take highest-confidence detection
         best_box = detections[0]
         class_id = int(best_box.cls)
         confidence = float(best_box.conf)
@@ -206,9 +200,7 @@ if uploaded_file is not None:
         with col2:
             st.metric("Confidence", f"{confidence:.2%}")
 
-        # ---------------- REMEDIES SECTION ---------------- #
         info = REMEDIES.get(label)
-
         if info:
             st.subheader("🩺 Disease Information")
             st.write(info["description"])
@@ -217,14 +209,12 @@ if uploaded_file is not None:
             for i, remedy in enumerate(info["remedies"], 1):
                 st.write(f"{i}. {remedy}")
         else:
-            st.info(
-                "No specific remedies found for this disease. "
-                "Please consult an agricultural expert."
-            )
+            st.info("No specific remedies found. Please consult an agricultural expert.")
 
     st.markdown("---")
 
-# ---------------- DISCLAIMER ---------------- #
+# ================= FOOTER ================= #
+
 st.caption(
     "⚠️ Disclaimer: This system is a prototype developed for academic and social "
     "awareness purposes. Predictions depend on image quality and should be "
